@@ -1,3 +1,16 @@
+Release 4.5.0-beta3-p1 16th March 2024
+-------------------------------------
+Changes from stock 4.5.0-beta3:
+
+1) Safety patches
+  - Failsafe during auto takeoff switches to QLand #26260
+
+2) Continuous Integration changes (no impact on firmware)
+  - Fixed CI for SITL build: #26215
+  - Tailored CI for ArgenTech: ArgenTech-Solutions/ardupilot#1
+    - Created new build action for all boards used at ArgenTech
+    - Eliminated irrelevant tasks and tests
+
 Release 4.5.0-beta3 14th March 2024
 -----------------------------------
 
