@@ -1,3 +1,20 @@
+Release 4.5.0.1-beta4 25th March 2024
+-------------------------------------
+Changes from stock 4.5.0-beta4:
+
+1) Safety patches
+  - Failsafe during auto takeoff switches to QLand #26260
+
+2) Continuous Integration changes (no impact on firmware)
+  - Fixed CI for SITL build: #26215
+  - Tailored CI for ArgenTech: ArgenTech-Solutions/ardupilot#1
+    - Created new build action for all boards used at ArgenTech
+    - Eliminated irrelevant tasks and tests
+
+3) Scripts (no impact on firmware)
+  - Created Engine-Out automatic failsafe script and associated tests
+
+
 Release 4.5.0-beta4 22nd March 2024
 -----------------------------------
 
@@ -20,7 +37,6 @@ Changes from 4.5.0-beta3
 
 3) plane specific changes
 - fixed flare on TVBS quadplanes with throttle stick input
-
 
 Release 4.5.0-beta3 14th March 2024
 -----------------------------------
