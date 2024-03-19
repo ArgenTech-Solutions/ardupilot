@@ -31,6 +31,7 @@ import quadplane
 import balancebot
 import sailboat
 import helicopter
+import fireeye
 
 import examples
 from pysim import util
@@ -288,6 +289,7 @@ __bin_names = {
     "Sailboat": "ardurover",
     "SITLPeriphUniversal": "sitl_periph_universal.AP_Periph",
     "CAN": "arducopter",
+    "FireEye": "arduplane",
 }
 
 
@@ -359,6 +361,7 @@ tester_class_map = {
     "test.Sub": ardusub.AutoTestSub,
     "test.Tracker": antennatracker.AutoTestTracker,
     "test.CAN": arducopter.AutoTestCAN,
+    "test.FireEye": fireeye.AutoTestFireEye,
 }
 
 supplementary_test_binary_map = {
