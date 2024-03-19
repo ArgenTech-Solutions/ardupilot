@@ -181,6 +181,7 @@ private:
     double last_time_s;
     bool heli_demix;
     bool rev4_servos;
+    bool autotest;
     bool controller_started;
     uint32_t glitch_count;
     uint64_t frame_counter;
