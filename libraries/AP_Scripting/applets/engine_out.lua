@@ -453,7 +453,13 @@ local function check_qland_qrtl()
         end
     end
 
-    local in_range = dist and dist < Q_FW_LND_APR_RAD:get() * 1.25
+    local threshold = Q_FW_LND_APR_RAD:get()
+    -- If the user has not set a fixed-wing approach radius, use RTL_RADIUS
+    if threshold == 0 then
+        threshold = engineFailsafeParamGroup:get_backup("RTL_RADIUS") * 1.25
+    end
+    threshold = math.abs(threshold or 0)
+    local in_range = dist and dist < threshold
 
     --[[
     Land if we are in Q_ASSIST for too long, no matter what altitude. This is
