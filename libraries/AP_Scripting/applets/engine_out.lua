@@ -434,7 +434,7 @@ local function check_qland_qrtl()
     --]]
     if q_assist_start_time then
         local original_radius = engineFailsafeParamGroup:get_backup("RTL_RADIUS")
-        local ratio = 2 * (groundspeed^2 - QAST_GSPD:get()^2) / (GLIDE_SPD:get()^2 - QAST_GSPD:get()^2)
+        local ratio = (groundspeed^2 - QAST_GSPD:get()^2) / (GLIDE_SPD:get()^2 - QAST_GSPD:get()^2)
         local radius = original_radius * math.min(ratio, 1)
         engineFailsafeParamGroup:set_parameter("RTL_RADIUS", radius)
 
@@ -557,17 +557,6 @@ local function configure_tecs(glide)
     end
 
     --[[
-    If we are in Q_ASSIST, we stop the glide and make pitch prioritise altitude.
-    There's only 1-deg of pitch authority in Q_ASSIST, but this can still help,
-    and pitching up makes a difference on the airbraking behavior of Q_ASSIST.
-    --]]
-    if q_assist_start_time then
-        tecsParamGroup:set_parameter("TECS_SPDWEIGHT", 0.1)
-        tecsParamGroup:set_parameter("THR_MAX", 1)
-        return
-    end
-
-    --[[
     Glide. We do this by setting the THR_MAX to 0. This is better than setting
     TECS_SPDWEIGHT to 2 for a couple reasons:
       - It sets the glide flag in the TECS, which should prevent the underspeed
@@ -577,15 +566,6 @@ local function configure_tecs(glide)
         running. It's actually better to just idle the engine and glide.
     --]]
     tecsParamGroup:set_parameter("THR_MAX", 0)
-
-    -- Set the cruise speed to the optimal glide speed
-    local glide_speed = GLIDE_SPD:get()
-    if glide_speed then
-        tecsParamGroup:set_parameter("AIRSPEED_CRUISE", glide_speed)
-    else
-        -- Should be unreachable, but nil checking makes the linter happy
-        gcs:send_text(5, 'Error: could not read ' .. 'GLIDE_SPD')
-    end
 
     --[[
     We need to enable terrain *following* or else Q_ASSIST_ALT will not use the
@@ -618,12 +598,11 @@ local function configure_tecs(glide)
     end
 
     --[[
-    TODO: consider actually disabling Q_ASSIST_SPEED, since it is easy to get
-    stuck underspeed at a high altitude and not be able to recover once the
-    engine is off. Q_ASSIST_ANGLE and Q_ASSIST_ALT should be enough during this
-    emergency.
+    Disable Q_ASSIST_SPEED, since it is easy to get stuck underspeed at a high
+    altitude and not be able to recover once the engine is off. Q_ASSIST_ANGLE
+    and Q_ASSIST_ALT should be enough during this emergency.
     --]]
-    -- tecsParamGroup:set_parameter("Q_ASSIST_SPEED", 0.1)
+    tecsParamGroup:set_parameter("Q_ASSIST_SPEED", 0.1)
 
     -- This script relies on Q_ASSIST_ALT and Q_ASSIST_ANGLE, but they will
     -- not be used if Q_ASSIST_SPEED is <= 0. Ensure it is > 0.
@@ -633,6 +612,29 @@ local function configure_tecs(glide)
     -- Set Q_ASSIST_ALT to Q_RTL_ALT
     local q_rtl_alt = Q_RTL_ALT:get() or 60 -- Shouldn't be possible to be nil
     tecsParamGroup:set_parameter("Q_ASSIST_ALT", q_rtl_alt)
+
+    --[[
+    Set AIRSPEED_MIN to the the threshold speed for switching to land. This
+    helps get unstuck from Q-Assist, and also allows us to lower the target
+    airspeed to facilitate airbraking.
+    --]]
+    local threshold_speed = QAST_GSPD:get() or 1
+    tecsParamGroup:set_parameter("AIRSPEED_MIN", threshold_speed)
+
+    -- If in Q_ASSIST, set the cruise speed to the threshold speed to facilitate
+    -- airbraking, otherwise set it to the optimal glide speed.
+    if q_assist_start_time then
+        tecsParamGroup:set_parameter("AIRSPEED_CRUISE", threshold_speed)
+    else
+        -- Set the cruise speed to the optimal glide speed
+        local glide_speed = GLIDE_SPD:get()
+        if glide_speed then
+            tecsParamGroup:set_parameter("AIRSPEED_CRUISE", glide_speed)
+        else
+            -- Should be unreachable, but nil checking makes the linter happy
+            gcs:send_text(5, 'Error: could not read ' .. 'GLIDE_SPD')
+        end
+    end
 end
 
 local function update()
