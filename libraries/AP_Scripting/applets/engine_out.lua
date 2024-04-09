@@ -597,13 +597,6 @@ local function configure_tecs(glide)
         gcs:send_text(5, 'Error: could not read ' .. 'Q_OPTIONS')
     end
 
-    --[[
-    Disable Q_ASSIST_SPEED, since it is easy to get stuck underspeed at a high
-    altitude and not be able to recover once the engine is off. Q_ASSIST_ANGLE
-    and Q_ASSIST_ALT should be enough during this emergency.
-    --]]
-    tecsParamGroup:set_parameter("Q_ASSIST_SPEED", 0.1)
-
     -- This script relies on Q_ASSIST_ALT and Q_ASSIST_ANGLE, but they will
     -- not be used if Q_ASSIST_SPEED is <= 0. Ensure it is > 0.
     local q_assist_speed = tecsParamGroup:get_backup("Q_ASSIST_SPEED") or 0
