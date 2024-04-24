@@ -261,22 +261,6 @@ local function check_engine()
     -- Otherwise, the engine is definitely not running
     set_engine_state(true)
 end
- 
-local function do_engine_failsafe()
-    --[[
-    Trigger the RTL upon engine failure. This includes reconfiguring some
-    parameters. This should only be called once to initiate the failsafe.
-    --]]
-
-    -- We don't want to do the mission based autoland, so disable RTL_AUTOLAND
-    engineFailsafeParamGroup:set_parameter("RTL_AUTOLAND", 0)
-    -- We don't want any automatic QRTL behavior
-    engineFailsafeParamGroup:set_parameter("Q_RTL_MODE", 0)
-
-    -- Trigger an RTL to start bringing the vehicle or to the nearest rally point
-    -- if set or go to home if no rally point available within the RALLY_LIMIT_KM
-    vehicle:set_mode(MODE_RTL)
-end
 
 local function switch_qland(reason)
     --[[
@@ -305,6 +289,29 @@ local function switch_qrtl(reason)
 
     gcs:send_text(2, "Failsafe: Landing QRTL")
     vehicle:set_mode(MODE_QRTL)
+end
+
+local function do_engine_failsafe()
+    --[[
+    Trigger the RTL upon engine failure. This includes reconfiguring some
+    parameters. This should only be called once to initiate the failsafe.
+    --]]
+
+    -- We don't want to do the mission based autoland, so disable RTL_AUTOLAND
+    engineFailsafeParamGroup:set_parameter("RTL_AUTOLAND", 0)
+    -- We don't want any automatic QRTL behavior
+    engineFailsafeParamGroup:set_parameter("Q_RTL_MODE", 0)
+
+    -- If we are already low, then RTL is a bad idea. Instead, switch to QLand
+    local height_agl = utilities.relative_ground_altitude(true, true)
+    if height_agl and height_agl < Q_RTL_ALT:get() then
+        switch_qland("Engine out and below minimum altitude")
+        return
+    end
+
+    -- Trigger an RTL to start bringing the vehicle or to the nearest rally point
+    -- if set or go to home if no rally point available within the RALLY_LIMIT_KM
+    vehicle:set_mode(MODE_RTL)
 end
 
 local function reset_target_alt()
