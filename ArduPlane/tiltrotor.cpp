@@ -82,6 +82,15 @@ const AP_Param::GroupInfo Tiltrotor::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("WING_FLAP", 10, Tiltrotor, flap_angle_deg, 0),
 
+    // @Param: RAT_DN_FN
+    // @DisplayName: Tiltrotor downwards tilt rate final
+    // @Description: This is the maximum speed at which the motor angle will change for a tiltrotor when completing the second half of the transition when the aircraft has gained a sufficient amount of forward airspeed. When this is zero the Q_TILT_RATE_UP value is used.
+    // @Units: deg/s
+    // @Increment: 1
+    // @Range: 10 300
+    // @User: Standard
+    AP_GROUPINFO("RAT_DN_FN", 11, Tiltrotor, max_rate_down_final_dps, 0),
+
     AP_GROUPEND
 };
 
