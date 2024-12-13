@@ -168,6 +168,9 @@ float Tiltrotor::tilt_max_change(bool up, bool in_flap_range) const
     float rate;
     if (up || max_rate_down_dps <= 0) {
         rate = max_rate_up_dps;
+    } else if (transition->transition_state == Tiltrotor_Transition::TRANSITION_TIMER) {
+        // Use the final tilt rate for the second part of transition
+        rate = max_rate_down_final_dps > 0 ? max_rate_down_final_dps : max_rate_down_dps;
     } else {
         rate = max_rate_down_dps;
     }
@@ -287,6 +290,13 @@ void Tiltrotor::continuous_update(void)
 
       5) if we are in TRANSITION_TIMER mode then we are transitioning
          to forward flight and should put the rotors all the way forward
+
+      6) The transition tilt rate is managed using two possible rates:
+         Q_TILT_RATE_DN for the initial phase of the transition, and
+         Q_TILT_RAT_DN_FN for the final phase. This allows for a slower
+         initial rotation followed by a faster final tilt once sufficient
+         airspeed has been gained. When Q_TILT_RAT_DN_FN is zero, the
+         Q_TILT_RATE_DN value is used for the entire transition.
     */
 
 #if QAUTOTUNE_ENABLED
