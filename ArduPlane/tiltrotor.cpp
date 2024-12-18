@@ -82,6 +82,15 @@ const AP_Param::GroupInfo Tiltrotor::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("WING_FLAP", 10, Tiltrotor, flap_angle_deg, 0),
 
+    // @Param: RAT_DN_FN
+    // @DisplayName: Tiltrotor downwards tilt rate final
+    // @Description: This is the maximum speed at which the motor angle will change for a tiltrotor when completing the second half of the transition when the aircraft has gained a sufficient amount of forward airspeed. When this is zero the Q_TILT_RATE_UP value is used.
+    // @Units: deg/s
+    // @Increment: 1
+    // @Range: 10 300
+    // @User: Standard
+    AP_GROUPINFO("RAT_DN_FN", 11, Tiltrotor, max_rate_down_final_dps, 0),
+
     AP_GROUPEND
 };
 
@@ -159,6 +168,9 @@ float Tiltrotor::tilt_max_change(bool up, bool in_flap_range) const
     float rate;
     if (up || max_rate_down_dps <= 0) {
         rate = max_rate_up_dps;
+    } else if (transition->transition_state == Tiltrotor_Transition::TRANSITION_TIMER) {
+        // Use the final tilt rate for the second part of transition
+        rate = max_rate_down_final_dps > 0 ? max_rate_down_final_dps : max_rate_down_dps;
     } else {
         rate = max_rate_down_dps;
     }
@@ -278,6 +290,13 @@ void Tiltrotor::continuous_update(void)
 
       5) if we are in TRANSITION_TIMER mode then we are transitioning
          to forward flight and should put the rotors all the way forward
+
+      6) The transition tilt rate is managed using two possible rates:
+         Q_TILT_RATE_DN for the initial phase of the transition, and
+         Q_TILT_RAT_DN_FN for the final phase. This allows for a slower
+         initial rotation followed by a faster final tilt once sufficient
+         airspeed has been gained. When Q_TILT_RAT_DN_FN is zero, the
+         Q_TILT_RATE_DN value is used for the entire transition.
     */
 
 #if QAUTOTUNE_ENABLED
