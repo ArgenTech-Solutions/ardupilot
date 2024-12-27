@@ -82,6 +82,15 @@ const AP_Param::GroupInfo Tiltrotor::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("WING_FLAP", 10, Tiltrotor, flap_angle_deg, 0),
 
+    // @Param: RAT_DN_FN
+    // @DisplayName: Tiltrotor downwards tilt rate final
+    // @Description: This is the maximum speed at which the motor angle will change for a tiltrotor when completing the second half of the transition when the aircraft has gained a sufficient amount of forward airspeed. When this is zero the Q_TILT_RATE_UP value is used.
+    // @Units: deg/s
+    // @Increment: 1
+    // @Range: 10 300
+    // @User: Standard
+    AP_GROUPINFO("RAT_DN_FN", 11, Tiltrotor, max_rate_down_final_dps, 0),
+
     AP_GROUPEND
 };
 
@@ -159,6 +168,8 @@ float Tiltrotor::tilt_max_change(bool up, bool in_flap_range) const
     float rate;
     if (up || max_rate_down_dps <= 0) {
         rate = max_rate_up_dps;
+    } else if (transition->transition_state == Tiltrotor_Transition::TRANSITION_TIMER && max_rate_down_final_dps > 0) {
+       rate = max_rate_down_final_dps;
     } else {
         rate = max_rate_down_dps;
     }
@@ -278,6 +289,13 @@ void Tiltrotor::continuous_update(void)
 
       5) if we are in TRANSITION_TIMER mode then we are transitioning
          to forward flight and should put the rotors all the way forward
+
+      6) The transition tilt rate is managed using two possible rates:
+         Q_TILT_RATE_DN for the initial phase of the transition, and
+         Q_TILT_RAT_DN_FN for the final phase. This allows for a slower
+         initial rotation followed by a faster final tilt once sufficient
+         airspeed has been gained. When Q_TILT_RAT_DN_FN is zero, the
+         Q_TILT_RATE_DN value is used for the entire transition.
     */
 
 #if QAUTOTUNE_ENABLED
@@ -325,8 +343,11 @@ void Tiltrotor::continuous_update(void)
         // Q_TILT_MAX. Anything above 50% throttle gets
         // Q_TILT_MAX. Below 50% throttle we decrease linearly. This
         // relies heavily on Q_VFWD_GAIN being set appropriately.
-       float settilt = constrain_float((SRV_Channels::get_output_scaled(SRV_Channel::k_throttle)-MAX(plane.aparm.throttle_min.get(),0)) * 0.02, 0, 1);
-       slew(MIN(settilt * max_angle_deg * (1/90.0), get_forward_flight_tilt())); 
+        const float throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
+        const float thr_min = MAX(plane.aparm.throttle_min.get(), 0.0);
+        const float thr_max = MIN(plane.aparm.throttle_max.get(), 100.0);
+        float settilt = constrain_float( ((throttle - thr_min)*2) / (thr_max - thr_min), 0, 1);
+        slew(MIN(settilt * max_angle_deg * (1/90.0), get_forward_flight_tilt()));
     }
 }
 
