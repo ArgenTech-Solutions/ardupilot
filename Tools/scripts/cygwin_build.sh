@@ -35,10 +35,10 @@ WAF_OPTIONS="-j8"
 
 # artifacts are expected to have .exe as they are executable
 cp -v build/sitl/bin/arduplane artifacts/ArduPlane.elf.exe
-cp -v build/sitl/bin/arducopter artifacts/ArduCopter.elf.exe
-cp -v build/sitl/bin/arducopter-heli artifacts/ArduHeli.elf.exe
-cp -v build/sitl/bin/ardurover artifacts/ArduRover.elf.exe
-cp -v build/sitl/bin/ardusub artifacts/ArduSub.elf.exe
+# cp -v build/sitl/bin/arducopter artifacts/ArduCopter.elf.exe
+# cp -v build/sitl/bin/arducopter-heli artifacts/ArduHeli.elf.exe
+# cp -v build/sitl/bin/ardurover artifacts/ArduRover.elf.exe
+# cp -v build/sitl/bin/ardusub artifacts/ArduSub.elf.exe
 
 # Find all cyg*.dll files returned by cygcheck for each exe in artifacts
 # and copy them over
