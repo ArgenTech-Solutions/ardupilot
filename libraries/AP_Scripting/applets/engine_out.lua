@@ -499,7 +499,7 @@ local function pre_arm_checks()
     -- Check if the glide speed is within bounds
     if GLIDE_SPD:get() <= 0 or GLIDE_SPD:get() < AIRSPEED_MIN:get() or GLIDE_SPD:get() > AIRSPEED_MAX:get() then
         local failure_message =
-            PARAM_TABLE_PREFIX .. "ENGOUT_GLIDE_SPD out of bounds"
+            PARAM_TABLE_PREFIX .. "GLIDE_SPD out of bounds"
         arming:set_aux_auth_failed(arming_auth_id, failure_message)
         return
     end
@@ -507,7 +507,7 @@ local function pre_arm_checks()
     -- Check if VIB_THRSH is unusually low
     if VIB_THRSH:get() <= 1 then
         local failure_message =
-            PARAM_TABLE_PREFIX .. "ENGOUT_VIB_THRSH is too low"
+            PARAM_TABLE_PREFIX .. "VIB_THRSH is too low"
         arming:set_aux_auth_failed(arming_auth_id, failure_message)
         return
     end
