@@ -132,6 +132,7 @@ FlightAxis::FlightAxis(const char *frame_str) :
     if(strstr(frame_str, "rev4") != nullptr) {
         _options.set(_options | uint32_t(Option::Rev4Servos));
     }
+    autotest = strstr(frame_str, "autotest") != nullptr;
 
     const char *colon = strchr(frame_str, ':');
     if (colon) {
@@ -305,7 +306,7 @@ void FlightAxis::exchange_data(const struct sitl_input &input)
 </soap:Body>
 </soap:Envelope>)");
         soap_request_end(1000);
-        if(option_is_set(Option::ResetPosition)) {
+        if(autotest) {
             soap_request_start("ResetAircraft", R"(<?xml version='1.0' encoding='UTF-8'?>
 <soap:Envelope xmlns:soap='http://schemas.xmlsoap.org/soap/envelope/' xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
 <soap:Body>
@@ -548,9 +549,11 @@ void FlightAxis::update(const struct sitl_input &input)
     /*
       the interlink interface supports 12 input channels
      */
-    rcin_chan_count = 12;
-    for (uint8_t i=0; i<rcin_chan_count; i++) {
-        rcin[i] = state.rcin[i];
+    if(!autotest) {
+        rcin_chan_count = 12;
+        for (uint8_t i=0; i<rcin_chan_count; i++) {
+            rcin[i] = state.rcin[i];
+        }
     }
 
     update_position();
@@ -570,7 +573,7 @@ void FlightAxis::update(const struct sitl_input &input)
             // we've had a network glitch, compensate by advancing initial time
             float adjustment_s = (dt_us-glitch_threshold_us)*1.0e-6;
             initial_time_s += adjustment_s;
-            printf("glitch %.2fs\n", adjustment_s);
+            if(!autotest) printf("glitch %.2fs\n", adjustment_s);
             dt_us = glitch_threshold_us;
             glitch_count++;
         }
@@ -604,9 +607,9 @@ void FlightAxis::report_FPS(void)
             uint64_t frames = socket_frame_counter - last_socket_frame_counter;
             last_socket_frame_counter = socket_frame_counter;
             double dt = state.m_currentPhysicsTime_SEC - last_frame_count_s;
-            if(!option_is_set(Option::SilenceFPS)) {
+            if(!autotest) {
                 printf("%.2f/%.2f FPS avg=%.2f glitches=%u\n",
-                    frames / dt, 1000 / dt, 1.0/average_frame_time_s, unsigned(glitch_count));
+                       frames / dt, 1000 / dt, 1.0/average_frame_time_s, unsigned(glitch_count));
             }
         } else {
             printf("Initial position %f %f %f\n", position.x, position.y, position.z);
