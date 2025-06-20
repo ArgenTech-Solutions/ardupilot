@@ -31,6 +31,7 @@ import quadplane
 import balancebot
 import sailboat
 import helicopter
+import fireeye
 
 import examples
 from pysim import util
@@ -293,6 +294,7 @@ __bin_names = {
     "SITLPeriphBattMon": ("sitl_periph_battmon", "AP_Periph"),
     "CAN": "arducopter",
     "BattCAN": "arducopter",
+    "FireEye": "arduplane",
 }
 
 
@@ -366,6 +368,7 @@ tester_class_map = {
     "test.Tracker": antennatracker.AutoTestTracker,
     "test.CAN": arducopter.AutoTestCAN,
     "test.BattCAN": arducopter.AutoTestBattCAN,
+    "test.FireEye": fireeye.AutoTestFireEye,
 }
 
 supplementary_test_binary_map = {
