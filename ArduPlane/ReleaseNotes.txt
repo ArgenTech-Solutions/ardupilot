@@ -893,7 +893,6 @@ Changes from 4.5.0-beta3
 3) plane specific changes
 - fixed flare on TVBS quadplanes with throttle stick input
 
-
 Release 4.5.0-beta3 14th March 2024
 -----------------------------------
 
